@@ -91,7 +91,7 @@ const main = async () => {
 
     case "exit":
       console.log(chalk.magenta(chalk.black.bgGreen("Success"), "Exited process with status code (1)"))
-      process.exit(1)
+      process.exit(0)
   }
 };
 
