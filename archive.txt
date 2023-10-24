@@ -1,0 +1,56 @@
+TODO codes which will be used in future
+
+/*
+const quickMain = async (query) => {
+  console.clear();
+  await title();
+  await wait(250);
+
+  if (!query) {
+    console.error(chalk.red("Error: Query cannot be empty."));
+    return;
+  }
+  const cache = readCache();
+  if (cache[query]) {
+    displaySearchResult(cache[query]);
+    return;
+  }
+  await searchAndCache(query, cache);
+};
+*/
+/*
+TODO: Commander.js
+
+program
+  .name('wiki-cli')
+  .description('Awesome and interactive Wikipedia CLI for Node.js')
+  .version("1.0.0")
+
+program.command('search <query>')
+  .description('Search for your query on Wikipedia')
+  .action((query) => {
+    quickMain(query);
+  });
+
+program.command('interact')
+  .description('Opens CLI in interactive mode')
+  .action(() => {
+    main();
+  });
+
+program.command('cache-clean')
+  .description('Clears cache')
+  .action(async () => {
+    const answer = await confirm({ message: 'Continue?' });
+    if (answer) {
+      clearCache()
+      console.log(chalk.magenta("Cleared Cache Successfully ✅"));
+    }
+    else {
+      console.log(chalk.magenta("Cancelled ❌"))
+      return;
+    }
+  });
+
+program.parse();
+*/
