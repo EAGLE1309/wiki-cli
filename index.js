@@ -3,7 +3,7 @@
 // Import packages
 import chalk from 'chalk';
 import boxen from 'boxen';
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 
 // Import local modules
 import boot from "./utility/boot.js"
@@ -11,24 +11,24 @@ import title from "./utility/title.js"
 import wait from "./utility/wait.js"
 import { search } from "./helpers/wiki.js";
 import { objToPairs, output } from "./utility/objEntries.js"
+import { readCache, writeCache, clearCache } from "./helpers/cache.js";
 
-console.clear(); // Clear console
+import { Command } from 'commander';
+const program = new Command();
 
-await boot(); // Start function
-await title(); // Title for whole script
-await wait(1000); // Load for 1 sec
-
-// Get Input (interactive)
-const query = await input({ message: "Search: ", default: "Bleach anime" });
+program
+  .name('wiki-cli')
+  .description('Awesome and interactive wikipedia cli for nodejs')
+  .version("1.0.0");
 
 // Error Handling
-const errorMsg = (query, err) => {
+const displayError = (query = "", err) => {
   // Return error in a red box for better ui
-  return chalk.red(boxen(`Couldn't find search results for ${query}\n${err}`, { padding: 1, borderColor: "red" }))
+  console.log(chalk.red(boxen(`Couldn't find search results for ${query}\n${err}`, { padding: 1, borderColor: "red" })))
 }
 
 // Search Result
-const searchResult = async (result) => {
+const displaySearchResult = async (result) => {
   const content = boxen(result.content, { padding: 1, borderColor: "gray", title: "Basic info" })
   const detailsObj = await result.details
 
@@ -37,9 +37,95 @@ const searchResult = async (result) => {
   console.log(boxen(output, { padding: 1, borderColor: "gray", title: "Details" }))
 }
 
-// Search for given term (query) using wiki.js
-search(query)
-  .then(async data => await searchResult(data))
-  .catch((err) => console.log(errorMsg(query, err)))
+// Main Function
+const main = async () => {
 
-// for. e.g. search("Bleach Anime")
+  console.clear(); // Clear console
+
+  await boot(); // Start function
+  await title(); // Title for whole script
+  await wait(1000); // Load for 1 sec
+
+  // Get Input (interactive)
+  const query = await input({ message: "Search: ", default: "Bleach anime" });
+
+  if (!query) {
+    console.error(chalk.red("Error: Query cannot be empty."));
+    return;
+  }
+
+  // Load cache
+  const cache = readCache();
+
+  // Check if the query is in the cache
+  if (cache[query]) {
+    displaySearchResult(cache[query]);
+    return;
+  }
+
+  // Search for the given term (query) using wiki.js
+
+  await search(query)
+    .then(result => {
+      displaySearchResult(result);
+      if (result) {
+        cache[query] = result;
+        writeCache(cache);
+      }
+    })
+    .catch(err => displayError(query, err))
+  // for. e.g. search("Bleach Anime")
+
+}
+
+const quickMain = async (query) => {
+
+  console.clear();
+
+  await title();
+  await wait(250);
+
+  if (!query) {
+    console.error(chalk.red("Error: Query cannot be empty."));
+    return;
+  }
+
+  // Load cache
+  const cache = readCache();
+
+  // Check if the query is in the cache
+  if (cache[query]) {
+    displaySearchResult(cache[query]);
+    return;
+  }
+
+  // Search for the given term (query) using wiki.js
+
+  await search(query)
+    .then(result => {
+      displaySearchResult(result);
+      if (result) {
+        cache[query] = result;
+        writeCache(cache);
+      }
+    })
+    .catch(err => displayError(query, err))
+  // for. e.g. search("Bleach Anime")
+
+}
+
+program.command('search')
+  .description('Search for your query wikipedia')
+  .argument('<string>', 'query to search')
+  .action((query) => {
+    quickMain(query)
+  });
+
+program.command("interact")
+  .description("Opens CLI in interactive mode")
+  .action(() => {
+    main();
+  })
+
+program.parse();
+// main();
